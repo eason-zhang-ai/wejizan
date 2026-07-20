@@ -1,0 +1,21 @@
+page,
+body,
+#app {
+  min-height: 100%;
+  margin: 0;
+  color: #17211d;
+  background: #eef0f2;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Helvetica Neue", sans-serif;
+  font-optical-sizing: auto;
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+* {
+  box-sizing: border-box;
+}

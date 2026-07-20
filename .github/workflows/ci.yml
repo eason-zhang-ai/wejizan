@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.15.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm build:h5
+      - run: mv apps/client/dist apps/client/dist-h5
+      - run: pnpm build:weapp
+      - run: mv apps/client/dist apps/client/dist-weapp
+      - run: pnpm build:server
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wejizan-h5
+          path: apps/client/dist-h5
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wejizan-weapp
+          path: apps/client/dist-weapp
+          if-no-files-found: error

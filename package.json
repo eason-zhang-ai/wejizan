@@ -1,0 +1,27 @@
+{
+  "name": "wejizan",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@11.15.1",
+  "engines": {
+    "node": ">=24 <27"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @wejizan/client dev:h5",
+    "dev:h5": "pnpm --filter @wejizan/client dev:h5",
+    "dev:weapp": "pnpm --filter @wejizan/client dev:weapp",
+    "dev:server": "pnpm --filter @wejizan/server dev",
+    "build": "pnpm build:h5 && pnpm build:server",
+    "build:h5": "pnpm --filter @wejizan/client build:h5",
+    "build:weapp": "pnpm --filter @wejizan/client build:weapp",
+    "build:server": "pnpm --filter @wejizan/server build",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r --if-present test",
+    "lint": "pnpm -r --if-present lint"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "typescript": "^5.9.0",
+    "vitest": "^3.2.0"
+  }
+}
