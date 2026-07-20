@@ -16,6 +16,9 @@ export default defineConfig(async () => {
       750: 1,
       828: 0.905,
     },
+    env: {
+      TARO_APP_API_BASE_URL: JSON.stringify(process.env.TARO_APP_API_BASE_URL ?? ''),
+    },
     sourceRoot: 'src',
     outputRoot: 'dist',
     framework: 'react',
