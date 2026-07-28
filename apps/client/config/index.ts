@@ -50,7 +50,7 @@ export default defineConfig(async () => {
       publicPath: '/',
       staticDirectory: 'static',
       output: { filename: 'js/[name].[hash:8].js', chunkFilename: 'js/[name].[chunkhash:8].js' },
-      devServer: { port: 10086 },
+      devServer: { port: Number(process.env.PORT) || 10086 },
       postcss: {
         autoprefixer: { enable: true, config: {} },
         cssModules: { enable: false },

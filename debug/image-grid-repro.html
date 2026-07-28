@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>伪集赞 · 多图缩放复现</title>
+<style>
+  body { margin: 0; padding: 24px; background: #f3f4f3; font-family: -apple-system, "PingFang SC", sans-serif; }
+  h2 { font-size: 15px; margin: 24px 0 8px; color: #333; }
+  .phone { width: 375px; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 18px rgba(0,0,0,.08); }
+  .card { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 11px; padding: 15px 13px 18px; border-bottom: 1px solid #eceeed; }
+  .avatar { width: 42px; height: 42px; border-radius: 4px; background: linear-gradient(145deg,#9db8ac,#5d7a8c); }
+  .author { color: #576b95; font-size: 15px; font-weight: 620; }
+  .copy { color: #161916; font-size: 15px; margin-top: 5px; }
+
+  /* ===== 精确复刻 taro-image-core 组件内置样式（Taro 4.2.1 dist） ===== */
+  taro-image-core { width: 320px; height: 240px; font-size: 0; display: inline-block; position: relative; overflow: hidden; }
+  .taro-img__mode-aspectfill { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); }
+  .taro-img__mode-aspectfill--width { min-width: 100%; height: 100%; }
+  .taro-img__mode-aspectfill--height { width: 100%; min-height: 100%; }
+
+  /* ===== 项目当前样式 apps/client/src/pages/editor/index.scss ===== */
+  .moment-grid { width: 100%; margin-top: 9px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+  .moment-grid--2 { grid-template-columns: repeat(2, 1fr); width: 220px; }
+  .moment-grid--1 { grid-template-columns: 1fr; width: 205px; }
+  .moment-image { width: 100%; aspect-ratio: 1; object-fit: cover; background: #e4e6e5; }
+
+  /* ===== 候选修复 ===== */
+  .fixed .moment-image { height: auto; }
+</style>
+</head>
+<body>
+
+<h2>修复前：.moment-image 只设 width + aspect-ratio，组件自带 height:240px 使 aspect-ratio 失效</h2>
+<div id="before"></div>
+
+<h2>修复后：补 height: auto，aspect-ratio 生效，格子恢复正方形</h2>
+<div id="after"></div>
+
+<!-- 横图 800x400（对应 aspectfill--width）、竖图 400x800（对应 aspectfill--height） -->
+<script>
+  const LAND = "data:image/svg+xml;utf8," + encodeURIComponent(
+    "<svg xmlns='http://www.w3.org/2000/svg' width='800' height='400'><rect width='800' height='400' fill='#7fa8c9'/><circle cx='620' cy='90' r='55' fill='#f2d38a'/><rect y='300' width='800' height='100' fill='#4c7a5e'/><text x='24' y='60' font-size='40' fill='white' font-family='sans-serif'>800×400 横图</text></svg>");
+  const PORT = "data:image/svg+xml;utf8," + encodeURIComponent(
+    "<svg xmlns='http://www.w3.org/2000/svg' width='400' height='800'><rect width='400' height='800' fill='#c98a7f'/><circle cx='200' cy='240' r='90' fill='#f2e6c9'/><rect y='640' width='400' height='160' fill='#6e4c5e'/><text x='24' y='80' font-size='40' fill='white' font-family='sans-serif'>400×800 竖图</text></svg>");
+
+  function img(src, mode) {
+    return `<taro-image-core class="moment-image"><img class="taro-img__mode-aspectfill taro-img__mode-aspectfill--${mode}" src="${src}"></taro-image-core>`;
+  }
+  function grid(cls, cells) {
+    return `<div class="moment-grid ${cls}">${cells}</div>`;
+  }
+  function card(title, gridHtml) {
+    return `<div class="card"><div class="avatar"></div><div><span class="author">小满</span><div class="copy">${title}</div>${gridHtml}</div></div>`;
+  }
+  function render(targetId, fixed) {
+    const three = grid("", img(LAND, "width") + img(PORT, "height") + img(LAND, "width"));
+    const two = grid("moment-grid--2", img(PORT, "height") + img(LAND, "width"));
+    const one = grid("moment-grid--1", img(LAND, "width"));
+    document.getElementById(targetId).innerHTML =
+      `<div class="phone ${fixed ? "fixed" : ""}">` +
+      card("3 张图片（3 列网格）", three) +
+      card("2 张图片（2 列网格）", two) +
+      card("1 张图片（单列）", one) +
+      `</div>`;
+  }
+  render("before", false);
+  render("after", true);
+</script>
+
+</body>
+</html>
