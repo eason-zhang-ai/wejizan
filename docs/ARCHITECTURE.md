@@ -64,7 +64,7 @@ pnpm build:weapp
 
 H5 产物为 `apps/client/dist`，可部署到任意支持 SPA history fallback 的静态托管服务。H5 与微信小程序构建共用该目录，不能并发执行；CI 会分别保存两份产物。
 
-GitHub Actions 的 CI 执行类型检查、测试及两个前端构建，并上传 H5/小程序产物。
+GitHub Actions 的 CI 执行类型检查、测试及两个前端构建，并上传 H5/小程序产物。`deploy-pages.yml` 在 `main` 推送或手动触发时，以 `GITHUB_PAGES=true` 构建 H5，并通过官方 Pages Actions 上传和部署；该环境变量将静态资源路径切换为仓库子路径，避免项目 Pages 地址下的资源 404。
 
 ## 6. 测试现状
 

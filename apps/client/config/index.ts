@@ -1,6 +1,10 @@
 import path from 'node:path'
 import { defineConfig, type UserConfigExport } from '@tarojs/cli'
 
+const isGitHubPages = process.env.GITHUB_PAGES === 'true'
+const repositoryName = process.env.GITHUB_REPOSITORY?.split('/')[1] ?? 'wejizan'
+const h5PublicPath = isGitHubPages ? `/${repositoryName}/` : '/'
+
 export default defineConfig(async () => {
   const sharedSources = [
     path.resolve(__dirname, '../../../packages/contracts/src'),
@@ -47,7 +51,7 @@ export default defineConfig(async () => {
           configFile: path.resolve(__dirname, '../babel.config.cjs'),
         }))
       },
-      publicPath: '/',
+      publicPath: h5PublicPath,
       staticDirectory: 'static',
       output: { filename: 'js/[name].[hash:8].js', chunkFilename: 'js/[name].[chunkhash:8].js' },
       devServer: { port: Number(process.env.PORT) || 10086 },

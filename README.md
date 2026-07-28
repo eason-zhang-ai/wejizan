@@ -48,6 +48,7 @@ H5 中，AI 服务必须允许浏览器跨域请求（CORS）；微信小程序�
 ## GitHub Actions
 
 - `CI`：在 Pull Request 和 `main` 推送时执行类型检查、测试、H5/微信小程序构建，并上传双端前端产物。
+- `部署 GitHub Pages`：每次推送 `main`（或手动触发）时，构建 H5 并部署到 GitHub Pages。首次使用时，请在仓库 **Settings → Pages** 中将 Source 设为 **GitHub Actions**。
 
 AI 直连兼容 OpenAI 风格的 `POST /v1/chat/completions` 服务。
 
