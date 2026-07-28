@@ -362,9 +362,8 @@ $line: rgba(27, 45, 37, 0.09);
 .wechat-nav-title { font-size: 16PX; font-weight: 650; }
 .screen-watermark { position: absolute; z-index: 45; right: 12PX; bottom: 13PX; padding: 3PX 6PX; border-radius: 5PX; color: rgba(255,255,255,.86); background: rgba(17,29,23,.38); backdrop-filter: blur(6PX); font-size: 8PX; letter-spacing: .04em; pointer-events: none; }
 
-.status-component { position: absolute; display: flex; align-items: center; justify-content: center; transform-origin: center; white-space: nowrap; }
+.status-component { position: absolute; display: flex; align-items: center; justify-content: center; transform-origin: center; white-space: nowrap; pointer-events: none; }
 .status-text { font-size: 12PX; font-weight: 650; font-variant-numeric: tabular-nums; }
-.status-symbol { font-size: 13PX; font-weight: 700; }
 .signal-bars { width: 17PX; height: 11PX; display: flex; align-items: flex-end; gap: 1PX; }
 .signal-bars view { width: 3PX; border-radius: 1PX; background: currentColor; }
 .signal-bars view:nth-child(1) { height: 4PX; }.signal-bars view:nth-child(2) { height: 6PX; }.signal-bars view:nth-child(3) { height: 8PX; }.signal-bars view:nth-child(4) { height: 10PX; }
@@ -375,12 +374,29 @@ $line: rgba(27, 45, 37, 0.09);
 .battery-icon::after { content: ''; position: absolute; right: -3PX; top: 2PX; width: 2PX; height: 4PX; border-radius: 0 1PX 1PX 0; background: currentColor; }
 .battery-fill { height: 100%; border-radius: 1PX; background: currentColor; }
 
+.status-icon { position: relative; width: 16PX; height: 16PX; color: currentColor; }
+.status-icon view { position: absolute; box-sizing: border-box; }
+.alarm-face { left: 3PX; top: 4PX; width: 10PX; height: 10PX; border: 1.5PX solid currentColor; border-radius: 50%; }
+.alarm-bell { top: 1PX; width: 6PX; height: 4PX; border: 1.5PX solid currentColor; border-bottom: 0; border-radius: 6PX 6PX 0 0; }
+.alarm-bell--left { left: 1PX; transform: rotate(-28deg); }.alarm-bell--right { right: 1PX; transform: rotate(28deg); }
+.alarm-hand { left: 50%; top: 50%; width: 1PX; border-radius: 1PX; background: currentColor; transform-origin: bottom center; }.alarm-hand--short { height: 3PX; transform: translate(-50%, -100%) rotate(-42deg); }.alarm-hand--long { height: 4PX; transform: translate(-50%, -100%) rotate(72deg); }
+.alarm-leg { bottom: 0; width: 4PX; height: 1.5PX; border-radius: 1PX; background: currentColor; }.alarm-leg--left { left: 3PX; transform: rotate(26deg); }.alarm-leg--right { right: 3PX; transform: rotate(-26deg); }
+.bluetooth-line { width: 1.5PX; border-radius: 1PX; background: currentColor; transform-origin: center; }.bluetooth-line--stem { left: 7PX; top: 1PX; height: 14PX; }.bluetooth-line--top-left, .bluetooth-line--bottom-left { left: 4PX; width: 6PX; height: 1.5PX; }.bluetooth-line--top-right, .bluetooth-line--bottom-right { left: 7PX; width: 6PX; height: 1.5PX; }.bluetooth-line--top-left { top: 4PX; transform: rotate(43deg); }.bluetooth-line--top-right { top: 4PX; transform: rotate(-43deg); }.bluetooth-line--bottom-left { bottom: 4PX; transform: rotate(-43deg); }.bluetooth-line--bottom-right { bottom: 4PX; transform: rotate(43deg); }
+.location-pin { left: 3PX; top: 1PX; width: 10PX; height: 10PX; border: 1.5PX solid currentColor; border-radius: 7PX 7PX 7PX 1PX; transform: rotate(-45deg); }.location-pin-dot { left: 2.5PX; top: 2.5PX; width: 3PX; height: 3PX; border-radius: 50%; background: currentColor; }
+.silent-bell { left: 4PX; top: 3PX; width: 8PX; height: 9PX; border: 1.5PX solid currentColor; border-bottom: 0; border-radius: 6PX 6PX 2PX 2PX; }.silent-clapper { left: 6PX; bottom: 1PX; width: 4PX; height: 1.5PX; border-radius: 2PX; background: currentColor; }.silent-slash { left: 7PX; top: 0; width: 1.5PX; height: 17PX; border-radius: 1PX; background: currentColor; transform: rotate(42deg); }
+.hotspot-ring { left: 50%; top: 50%; border: 1.5PX solid currentColor; border-radius: 50%; transform: translate(-50%, -50%); }.hotspot-ring--outer { width: 15PX; height: 15PX; }.hotspot-ring--inner { width: 8PX; height: 8PX; }.hotspot-dot { left: 50%; top: 50%; width: 3PX; height: 3PX; border-radius: 50%; background: currentColor; transform: translate(-50%, -50%); }
+
 .status-editor-canvas { position: relative; height: 56PX; overflow: hidden; border: 1PX solid rgba(30,53,42,.09); border-radius: 14PX; color: #15201b; background: linear-gradient(145deg, #eef3f0, #dce4e0); touch-action: none; }
 .status-editor-canvas .status-bar { height: 100%; }
-.status-drag-target { position: absolute; width: 30PX; height: 26PX; margin: -13PX 0 0 -15PX; border: 1PX solid transparent; border-radius: 7PX; cursor: grab; touch-action: none; }
+.status-drag-target { position: absolute; width: 30PX; height: 26PX; margin: 0; border: 1PX solid transparent; border-radius: 7PX; cursor: grab; touch-action: none; }
 .status-drag-target--selected { border-color: #36a978; box-shadow: 0 0 0 2PX rgba(54,169,120,.14); }
+.status-drag-target:active { cursor: grabbing; }
 .status-component-palette { display: flex; flex-wrap: wrap; gap: 5PX; margin: 10PX 0; }
 .status-inspector { margin-top: 12PX; padding: 12PX; border-radius: 13PX; background: rgba(238,244,241,.85); }
+.scale-control { display: grid; grid-template-columns: 30PX minmax(0, 1fr) 30PX; align-items: center; gap: 8PX; margin-top: 4PX; }
+.scale-control slider { min-width: 0; }
+.scale-stepper { width: 30PX; height: 30PX; margin: 0; padding: 0; border: 1PX solid rgba(31,61,47,.12); border-radius: 9PX; color: #276547; background: rgba(255,255,255,.7); font-size: 18PX; line-height: 27PX; }
+.scale-stepper::after { display: none; }
 
 .compact-summary { display: flex; flex-direction: column; gap: 9PX; }
 .summary-card { display: flex; justify-content: space-between; padding: 11PX 12PX; border: 1PX solid $line; border-radius: 12PX; background: rgba(255,255,255,.65); color: #65716b; font-size: 11PX; }

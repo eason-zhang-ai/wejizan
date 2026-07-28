@@ -6,17 +6,24 @@ import { StatusBar } from './StatusBar'
 
 const componentOptions: Array<{ type: StatusComponentType; label: string }> = [
   { type: 'time', label: '时间' },
-  { type: 'carrier', label: '运营商' },
-  { type: 'signal', label: '信号' },
-  { type: 'network', label: '4G/5G' },
+  { type: 'carrier', label: '运营商文字' },
+  { type: 'signal', label: '信号强度' },
+  { type: 'network', label: '网络类型（4G/5G）' },
   { type: 'wifi', label: 'Wi‑Fi' },
-  { type: 'battery', label: '电量' },
+  { type: 'battery', label: '电池电量' },
   { type: 'alarm', label: '闹钟' },
   { type: 'bluetooth', label: '蓝牙' },
-  { type: 'location', label: '定位' },
+  { type: 'location', label: '定位服务' },
   { type: 'silent', label: '静音' },
-  { type: 'hotspot', label: '热点' },
+  { type: 'hotspot', label: '个人热点' },
 ]
+
+function defaultValueFor(type: StatusComponentType) {
+  if (type === 'time') return '9:41'
+  if (type === 'network') return '5G'
+  if (type === 'battery') return '86'
+  return ''
+}
 
 interface DragState {
   id: string
@@ -88,11 +95,16 @@ export function StatusBarEditor({ scheme, onChange }: StatusBarEditorProps) {
       x: 50,
       y: 52,
       scale: 1,
-      value: type === 'time' ? '9:41' : type === 'network' ? '5G' : type === 'battery' ? '86' : '',
+      value: defaultValueFor(type),
       visible: true,
     }
     onChange({ ...scheme, custom: true, id: scheme.custom ? scheme.id : createId('scheme'), name: scheme.custom ? scheme.name : `${scheme.name}副本`, components: [...scheme.components, item] })
     setSelectedId(item.id)
+  }
+
+  const updateSelectedScale = (value: number) => {
+    if (!selected || !Number.isFinite(value)) return
+    updateComponent(selected.id, { scale: Math.max(0.6, Math.min(1.8, value / 100)) })
   }
 
   return (
@@ -135,7 +147,10 @@ export function StatusBarEditor({ scheme, onChange }: StatusBarEditorProps) {
               mode='selector'
               range={componentOptions.map((item) => item.label)}
               value={Math.max(0, componentOptions.findIndex((item) => item.type === selected.type))}
-              onChange={(event) => updateComponent(selected.id, { type: componentOptions[Number(event.detail.value)]?.type ?? selected.type })}
+              onChange={(event) => {
+                const type = componentOptions[Number(event.detail.value)]?.type ?? selected.type
+                updateComponent(selected.id, { type, value: selected.value || defaultValueFor(type) })
+              }}
             >
               <View className='picker-field'>{componentOptions.find((item) => item.type === selected.type)?.label}</View>
             </Picker>
@@ -148,7 +163,11 @@ export function StatusBarEditor({ scheme, onChange }: StatusBarEditorProps) {
           )}
           <View className='field-block'>
             <View className='field-row'><Text className='field-label'>缩放</Text><Text className='field-value'>{selected.scale.toFixed(1)}×</Text></View>
-            <Slider min={60} max={180} value={selected.scale * 100} activeColor='#1f8f5f' onChange={(event) => updateComponent(selected.id, { scale: event.detail.value / 100 })} />
+            <View className='scale-control'>
+              <Button size='mini' className='scale-stepper' disabled={selected.scale <= 0.6} onClick={() => updateSelectedScale(Math.round(selected.scale * 100) - 5)}>−</Button>
+              <Slider min={60} max={180} step={5} value={Math.round(selected.scale * 100)} activeColor='#1f8f5f' onChanging={(event) => updateSelectedScale(Number(event.detail.value))} onChange={(event) => updateSelectedScale(Number(event.detail.value))} />
+              <Button size='mini' className='scale-stepper' disabled={selected.scale >= 1.8} onClick={() => updateSelectedScale(Math.round(selected.scale * 100) + 5)}>+</Button>
+            </View>
           </View>
           <View className='field-row'>
             <Text className='field-label'>显示</Text>
