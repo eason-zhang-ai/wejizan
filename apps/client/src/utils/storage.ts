@@ -5,7 +5,7 @@ const PROJECT_KEY = 'wejizan.project.v1'
 const AI_CONFIGS_KEY = 'wejizan.ai.configs.v1'
 const EDITOR_THEME_KEY = 'wejizan.editor.theme.v1'
 
-export type EditorTheme = 'light' | 'dark'
+export type EditorTheme = 'light' | 'dark' | 'system'
 
 export interface AiConfig {
   id: string
@@ -104,7 +104,8 @@ export function deleteAiConfig(id: string) {
 }
 
 export function loadEditorTheme(): EditorTheme {
-  return Taro.getStorageSync<unknown>(EDITOR_THEME_KEY) === 'dark' ? 'dark' : 'light'
+  const value = Taro.getStorageSync<unknown>(EDITOR_THEME_KEY)
+  return value === 'dark' || value === 'system' ? value : 'light'
 }
 
 export function saveEditorTheme(theme: EditorTheme) {

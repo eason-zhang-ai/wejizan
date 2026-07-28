@@ -435,10 +435,11 @@ $line: rgba(27, 45, 37, 0.09);
 .settings-scroll { height: calc(100% - 72PX); }
 .settings-section { padding: 16PX; border-bottom: 1PX solid $line; }
 .settings-section .section-description { margin: 6PX 0 12PX; }
-.theme-choice-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8PX; }
+.theme-choice-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8PX; }
 .theme-choice-row button { height: 40PX; margin: 0; padding: 0; border: 1PX solid rgba(31,61,47,.1); border-radius: 11PX; color: #587066; background: rgba(255,255,255,.68); font-size: 12PX; line-height: 38PX; }
 .theme-choice-row button::after { display: none; }
 .theme-choice-row button.is-active { border-color: rgba(31,143,95,.45); color: #176b49; background: #eaf6ef; box-shadow: 0 1PX 0 rgba(255,255,255,.85) inset; }
+.theme-system-hint { display: block; margin-top: 8PX; color: #587066; font-size: 10PX; }
 
 .editor-app.is-dark {
   color: #d7e4dd;
@@ -475,6 +476,7 @@ $line: rgba(27, 45, 37, 0.09);
 .is-dark .settings-header, .is-dark .settings-section { border-color: rgba(216,239,226,.1); }
 .is-dark .settings-close { color: #c5d8cd; background: rgba(221,240,230,.09); }
 .is-dark .theme-choice-row button { border-color: rgba(216,239,226,.12); color: #bfd3c7; background: rgba(221,240,230,.06); }
+.is-dark .theme-system-hint { color: #a5bbaf; }
 
 .capture-host { position: fixed; z-index: -100; left: -10000PX; top: 0; opacity: 1; pointer-events: none; }
 .capture-surface { position: relative; overflow: hidden; color: #151915; background: white; font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif; }

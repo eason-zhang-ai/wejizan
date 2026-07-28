@@ -36,6 +36,15 @@ type InspectorTab = 'content' | 'feed' | 'status' | 'ai'
 
 const emptyAiConfig: AiConfigDraft = { name: '', baseUrl: '', apiKey: '', model: '' }
 
+const getSystemTheme = (): Exclude<EditorTheme, 'system'> => {
+  if (typeof window !== 'undefined' && window.matchMedia?.('(prefers-color-scheme: dark)').matches) return 'dark'
+  try {
+    return (Taro.getSystemInfoSync() as { theme?: string }).theme === 'dark' ? 'dark' : 'light'
+  } catch {
+    return 'light'
+  }
+}
+
 export default function EditorPage() {
   const initialProject = useMemo(() => createProject(), [])
   const [project, setProjectState] = useState<EditorProject>(initialProject)
@@ -52,7 +61,19 @@ export default function EditorPage() {
   const [polishVariants, setPolishVariants] = useState<Array<{ tone: string; text: string }>>([])
   const [saveState, setSaveState] = useState<'saved' | 'saving'>('saved')
   const [theme, setTheme] = useState<EditorTheme>(() => loadEditorTheme())
+  const [systemTheme, setSystemTheme] = useState<Exclude<EditorTheme, 'system'>>(() => getSystemTheme())
   const [settingsOpen, setSettingsOpen] = useState(false)
+
+  const resolvedTheme = theme === 'system' ? systemTheme : theme
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return
+    const query = window.matchMedia('(prefers-color-scheme: dark)')
+    const updateSystemTheme = () => setSystemTheme(query.matches ? 'dark' : 'light')
+    updateSystemTheme()
+    query.addEventListener?.('change', updateSystemTheme)
+    return () => query.removeEventListener?.('change', updateSystemTheme)
+  }, [])
 
   useEffect(() => {
     loadProject().then((saved) => {
@@ -337,7 +358,7 @@ export default function EditorPage() {
   }
 
   return (
-    <View className={`editor-app ${theme === 'dark' ? 'is-dark' : ''}`}>
+    <View className={`editor-app ${resolvedTheme === 'dark' ? 'is-dark' : ''}`}>
       <View className='app-topbar'>
         <View className='brand-lockup'>
           <View className='brand-mark'><Text>伪</Text></View>
@@ -361,7 +382,7 @@ export default function EditorPage() {
         </View>
         <View className='topbar-actions'>
           <Button className='secondary-button touch-feedback' onClick={locateTarget}>定位主内容</Button>
-          <Button className='topbar-tool-button' onClick={() => updateTheme(theme === 'light' ? 'dark' : 'light')}>{theme === 'light' ? '☾ 深色' : '☀ 浅色'}</Button>
+          <Button className='topbar-tool-button' onClick={() => updateTheme(theme === 'light' ? 'dark' : theme === 'dark' ? 'system' : 'light')}>{theme === 'light' ? '☾ 深色' : theme === 'dark' ? '◐ 跟随系统' : '☀ 浅色'}</Button>
           <Button className='topbar-tool-button topbar-settings-button' onClick={() => setSettingsOpen(true)}>⚙ 设置</Button>
         </View>
       </View>
@@ -532,7 +553,8 @@ export default function EditorPage() {
               <View className='settings-section'>
                 <Text className='settings-section-title'>外观</Text>
                 <Text className='section-description'>主题仅影响编辑器界面；手机预览和导出的朋友圈画面保持不变。</Text>
-                <View className='theme-choice-row'><Button className={theme === 'light' ? 'is-active' : ''} onClick={() => updateTheme('light')}>☀ 浅色</Button><Button className={theme === 'dark' ? 'is-active' : ''} onClick={() => updateTheme('dark')}>☾ 深色</Button></View>
+                <View className='theme-choice-row'><Button className={theme === 'light' ? 'is-active' : ''} onClick={() => updateTheme('light')}>☀ 浅色</Button><Button className={theme === 'dark' ? 'is-active' : ''} onClick={() => updateTheme('dark')}>☾ 深色</Button><Button className={theme === 'system' ? 'is-active' : ''} onClick={() => updateTheme('system')}>◐ 跟随系统</Button></View>
+                {theme === 'system' && <Text className='theme-system-hint'>当前系统外观：{systemTheme === 'dark' ? '深色' : '浅色'}</Text>}
               </View>
               <View className='settings-section'>
                 <View className='panel-heading-row'><View><Text className='settings-section-title'>AI 模型</Text><Text className='field-help'>仅保存在当前设备</Text></View><Button size='mini' className='chip-button' onClick={() => startAiConfig()}>添加配置</Button></View>
