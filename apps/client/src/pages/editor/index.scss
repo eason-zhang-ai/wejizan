@@ -363,6 +363,20 @@ $line: rgba(27, 45, 37, 0.09);
 .ai-variant-card > text { display: block; }
 .ai-tone { margin-bottom: 4PX; color: #1f8f5f; font-weight: 750; }
 .ai-variant-card button { margin-top: 8PX; }
+.ai-config-summary,
+.ai-config-empty,
+.ai-config-list-item { display: flex; align-items: center; justify-content: space-between; gap: 10PX; padding: 11PX; border: 1PX solid rgba(31,143,95,.18); border-radius: 12PX; background: rgba(237,248,242,.72); }
+.ai-config-empty { margin: 12PX 0; color: #597066; font-size: 11PX; }
+.ai-config-status { flex: 0 0 auto; color: #176b49; font-size: 9PX; font-weight: 750; }
+.ai-config-editor { margin: 13PX 0; padding: 12PX; border: 1PX solid rgba(31,54,43,.1); border-radius: 14PX; background: rgba(248,250,249,.92); }
+.ai-config-editor .panel-heading-row { margin-bottom: 5PX; }
+.ai-config-buttons,
+.ai-config-item-actions { display: flex; align-items: center; justify-content: flex-end; gap: 6PX; margin-top: 11PX; }
+.ai-config-buttons button { min-width: 0; flex: 1; }
+.ai-config-list { display: flex; flex-direction: column; gap: 7PX; margin: 12PX 0; }
+.ai-config-list-item { padding: 9PX 10PX; border-color: $line; background: rgba(255,255,255,.7); }
+.ai-config-item-actions { margin: 0; }
+.ai-config-item-actions .danger-link { margin: 0; padding: 0 7PX; font-size: 10PX; }
 
 .capture-host { position: fixed; z-index: -100; left: -10000PX; top: 0; opacity: 1; pointer-events: none; }
 .capture-surface { position: relative; overflow: hidden; color: #151915; background: white; font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif; }

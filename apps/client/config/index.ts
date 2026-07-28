@@ -16,9 +16,6 @@ export default defineConfig(async () => {
       750: 1,
       828: 0.905,
     },
-    env: {
-      TARO_APP_API_BASE_URL: JSON.stringify(process.env.TARO_APP_API_BASE_URL ?? ''),
-    },
     sourceRoot: 'src',
     outputRoot: 'dist',
     framework: 'react',
@@ -53,15 +50,7 @@ export default defineConfig(async () => {
       publicPath: '/',
       staticDirectory: 'static',
       output: { filename: 'js/[name].[hash:8].js', chunkFilename: 'js/[name].[chunkhash:8].js' },
-      devServer: {
-        port: 10086,
-        proxy: {
-          '/api': {
-            target: 'http://localhost:3000',
-            changeOrigin: true,
-          },
-        },
-      },
+      devServer: { port: 10086 },
       postcss: {
         autoprefixer: { enable: true, config: {} },
         cssModules: { enable: false },

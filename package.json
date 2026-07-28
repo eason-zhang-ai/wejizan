@@ -10,11 +10,9 @@
     "dev": "pnpm --filter @wejizan/client dev:h5",
     "dev:h5": "pnpm --filter @wejizan/client dev:h5",
     "dev:weapp": "pnpm --filter @wejizan/client dev:weapp",
-    "dev:server": "pnpm --filter @wejizan/server dev",
-    "build": "pnpm build:h5 && pnpm build:server",
+    "build": "pnpm build:h5",
     "build:h5": "pnpm --filter @wejizan/client build:h5",
     "build:weapp": "pnpm --filter @wejizan/client build:weapp",
-    "build:server": "pnpm --filter @wejizan/server build",
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm -r --if-present test",
     "lint": "pnpm -r --if-present lint"

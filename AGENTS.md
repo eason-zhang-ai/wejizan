@@ -16,11 +16,9 @@
 ## 仓库结构
 
 - `apps/client`：Taro 4 + React 18 + TypeScript 前端，同时输出 H5 与微信小程序。
-- `apps/server`：Fastify API、访问口令、短期令牌、AI 适配器和静态文件托管。
 - `packages/contracts`：前后端共享的 Zod schema 与 TypeScript 类型，是数据模型的唯一事实来源。
 - `packages/editor-core`：无 UI 的随机内容、身份、评论、状态栏和项目生成逻辑。
-- `.github/workflows`：CI 与 GHCR 多架构镜像发布。
-- `Dockerfile`、`docker-compose.yml`：H5 与 API 的单镜像部署。
+- `.github/workflows`：前端 CI 与双端构建产物发布。
 
 ## 环境与常用命令
 
@@ -29,14 +27,12 @@
 ```bash
 pnpm install
 pnpm dev:h5
-pnpm dev:server
 pnpm dev:weapp
 
 pnpm typecheck
 pnpm test
 pnpm build:h5
 pnpm build:weapp
-pnpm build:server
 ```
 
 H5 开发服务器默认端口为 `10086`，并把 `/api` 代理到 `http://localhost:3000`。微信开发者工具导入 `apps/client`。
@@ -51,8 +47,8 @@ H5 开发服务器默认端口为 `10086`，并把 `/api` 代理到 `http://loca
 - 保持 H5 与微信小程序都能编译。改动截图、媒体、触摸事件或存储时，必须同时检查两个平台。
 - 不要随意升级 Taro、Webpack 或 Babel。当前 Webpack 固定为 `5.91.0`；共享 workspace TypeScript 源码依赖 `apps/client/config/index.ts` 中的 `compile.include` 和显式 Babel 配置。
 - `apps/client/src/index.html` 是 H5 入口模板，删除会导致构建成功但部署根路径没有页面。
-- 前端不得包含 AI API Key。服务端生产环境必须提供 `ACCESS_PASSWORD` 和 `SESSION_SECRET`。
-- 日志继续脱敏 authorization、password 和图片 data URL。新增敏感字段时同步更新 Fastify redact 配置。
+- 本项目不得在源码、构建变量或默认配置中提供 AI API Key。用户可自行在本机保存其 API Key，且不得把它写入项目草稿、导出内容或日志。
+- AI 调用从客户端直连用户指定的上游；H5 需验证 CORS，微信小程序需验证请求合法域名。
 
 ## 设计与交互
 
@@ -71,11 +67,9 @@ pnpm typecheck
 pnpm test
 pnpm build:h5
 pnpm build:weapp
-pnpm build:server
-ACCESS_PASSWORD=test SESSION_SECRET=01234567890123456789012345678901 docker compose config --quiet
 ```
 
-UI、截图或拖拽改动还要进行真实浏览器和微信开发者工具视觉检查。不能完成的检查必须在交接中明确说明，不能用“编译通过”替代视觉验收。
+UI、截图或拖拽改动还要进行真实浏览器和微信开发者工具视觉检查；AI 直连改动还须检查 H5 CORS 与微信请求合法域名。不能完成的检查必须在交接中明确说明，不能用“编译通过”替代视觉验收。
 
 ## 工作树安全
 

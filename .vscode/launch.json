@@ -2,7 +2,7 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "伪集赞：H5 前端",
+      "name": "伪集赞：启动 H5 前端",
       "type": "node-terminal",
       "request": "launch",
       "command": "pnpm dev:h5",
@@ -11,27 +11,6 @@
         "group": "wejizan",
         "order": 1
       }
-    },
-    {
-      "name": "伪集赞：API 服务",
-      "type": "node-terminal",
-      "request": "launch",
-      "command": "pnpm dev:server",
-      "cwd": "${workspaceFolder}",
-      "presentation": {
-        "group": "wejizan",
-        "order": 2
-      }
-    }
-  ],
-  "compounds": [
-    {
-      "name": "伪集赞：同时启动前后端",
-      "configurations": [
-        "伪集赞：H5 前端",
-        "伪集赞：API 服务"
-      ],
-      "stopAll": true
     }
   ]
 }

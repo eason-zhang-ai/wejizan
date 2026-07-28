@@ -1,6 +1,6 @@
 # 伪集赞
 
-一个以 Web 优先、同时编译微信小程序的朋友圈截图创作工具。它提供完整的朋友圈手机模拟器、可编辑状态栏、精确点赞与评论、原截图叠加、AI 文案辅助和当前手机视口截图。
+一个以 Web 优先、同时编译微信小程序的纯前端朋友圈截图创作工具。它提供完整的朋友圈手机模拟器、可编辑状态栏、精确点赞与评论、原截图叠加、可选的自带密钥 AI 文案辅助和当前手机视口截图。
 
 ## 项目文档
 
@@ -18,7 +18,7 @@
 - 状态栏组件拖放、显示值与缩放编辑
 - 作者和朋友圈主人昵称/头像替换
 - H5 当前手机视口 3× PNG 导出；微信小程序保存到相册
-- 匿名本机草稿、私用访问口令、AI 调用限流与敏感日志脱敏
+- 匿名本机草稿与多套本机 AI 配置；密钥由用户自行配置且仅存于当前设备
 - 默认显示“模拟生成 · 伪集赞”标识，关闭前提供用途警告
 
 ## 本地开发
@@ -26,37 +26,29 @@
 ```bash
 pnpm install
 pnpm dev:h5
-pnpm dev:server
 ```
 
-默认 H5 开发地址由 Taro 输出，API 默认监听 `http://localhost:3000`。复制 `.env.example` 为 `.env` 后配置私用访问口令和可选 AI 服务。
+默认 H5 开发地址为 `http://localhost:10086`。不需要 `.env`、访问口令或项目提供的 AI 服务。
 
 ## 构建
 
 ```bash
 pnpm build:h5
 pnpm build:weapp
-pnpm build:server
-docker build -t wejizan .
 ```
 
 微信开发者工具请导入 `apps/client`，项目配置会指向编译后的 `dist` 目录。
 
-## Docker 部署
+## AI 配置
 
-```bash
-cp .env.example .env
-# 修改 ACCESS_PASSWORD、SESSION_SECRET 以及可选 AI 配置
-docker compose up -d --build
-```
+在编辑器的「AI」页签添加一套 OpenAI 兼容配置，填写名称、API 地址、API Key 与模型名后即可使用。密钥和配置保存在当前浏览器或小程序的本机存储中，不会被写入项目草稿或发送到本项目服务器。
 
-访问 `http://localhost:3000`。单个镜像同时托管 H5 静态文件和 `/api`；存活检查为 `/api/health/live`。
+H5 中，AI 服务必须允许浏览器跨域请求（CORS）；微信小程序中，还需要在微信开发者后台将该服务添加为请求合法域名。未配置或不兼容的服务不会影响编辑和导出功能。
 
 ## GitHub Actions
 
-- `CI`：在 Pull Request 和 `main` 推送时执行类型检查、测试、H5/微信小程序/服务端构建，并上传双端前端产物。
-- `Docker image`：在 `main`、`v*` 标签或手动触发时构建 `linux/amd64` 与 `linux/arm64`，推送至 `ghcr.io/<owner>/<repo>`。
+- `CI`：在 Pull Request 和 `main` 推送时执行类型检查、测试、H5/微信小程序构建，并上传双端前端产物。
 
-AI 后端兼容 OpenAI 风格的 `POST /chat/completions` 服务，通过 `AI_BASE_URL`、`AI_API_KEY` 和 `AI_MODEL` 配置。
+AI 直连兼容 OpenAI 风格的 `POST /v1/chat/completions` 服务。
 
 生成内容默认带有“模拟生成 · 伪集赞”标识，仅应用于娱乐、教学和界面原型。

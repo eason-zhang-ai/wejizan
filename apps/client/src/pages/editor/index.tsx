@@ -1,4 +1,4 @@
-import { Button, Canvas, Input, Picker, ScrollView, Slider, Switch, Text, Textarea, View } from '@tarojs/components'
+import { Button, Canvas, Input, ScrollView, Slider, Switch, Text, Textarea, View } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import type { EditorProject, MomentPost } from '@wejizan/contracts'
 import {
@@ -13,13 +13,25 @@ import {
 import { useEffect, useMemo, useState } from 'react'
 import { CaptureSurface, PhoneSimulator } from '../../components/PhoneSimulator'
 import { StatusBarEditor } from '../../components/StatusBarEditor'
-import { createSession, generateComments, polishCopy } from '../../utils/api'
+import { generateComments, polishCopy, testAiConfig } from '../../utils/api'
 import { captureCurrentViewport } from '../../utils/capture'
 import { chooseImages } from '../../utils/media'
-import { loadProject, loadSessionToken, saveProject, saveSessionToken } from '../../utils/storage'
+import {
+  activateAiConfig,
+  deleteAiConfig,
+  getActiveAiConfig,
+  loadAiConfigs,
+  loadProject,
+  saveAiConfig,
+  saveProject,
+  type AiConfig,
+  type AiConfigDraft,
+} from '../../utils/storage'
 import './index.scss'
 
 type InspectorTab = 'content' | 'feed' | 'status' | 'ai'
+
+const emptyAiConfig: AiConfigDraft = { name: '', baseUrl: '', apiKey: '', model: '' }
 
 export default function EditorPage() {
   const initialProject = useMemo(() => createProject(), [])
@@ -28,8 +40,11 @@ export default function EditorPage() {
   const [openMenuId, setOpenMenuId] = useState('')
   const [scrollIntoView, setScrollIntoView] = useState('')
   const [activeTab, setActiveTab] = useState<InspectorTab>('content')
-  const [password, setPassword] = useState('')
-  const [sessionToken, setSessionToken] = useState(loadSessionToken())
+  const [aiConfigs, setAiConfigs] = useState<AiConfig[]>(() => loadAiConfigs())
+  const [aiConfigDraft, setAiConfigDraft] = useState<AiConfigDraft>(emptyAiConfig)
+  const [editingAiConfigId, setEditingAiConfigId] = useState<string | undefined>()
+  const [aiConfigFormOpen, setAiConfigFormOpen] = useState(false)
+  const [aiTestBusy, setAiTestBusy] = useState(false)
   const [aiBusy, setAiBusy] = useState(false)
   const [polishVariants, setPolishVariants] = useState<Array<{ tone: string; text: string }>>([])
   const [saveState, setSaveState] = useState<'saved' | 'saving'>('saved')
@@ -205,20 +220,66 @@ export default function EditorPage() {
     setProject((current) => ({ ...current, watermarkEnabled: enabled }))
   }
 
-  const ensureSession = async () => {
-    if (sessionToken) return sessionToken
-    if (!password) throw new Error('请先输入访问口令')
-    const result = await createSession(password)
-    setSessionToken(result.token)
-    saveSessionToken(result.token)
-    return result.token
+  const activeAiConfig = aiConfigs.find((config) => config.active) ?? aiConfigs[0]
+
+  const refreshAiConfigs = () => setAiConfigs(loadAiConfigs())
+
+  const startAiConfig = (config?: AiConfig) => {
+    setEditingAiConfigId(config?.id)
+    setAiConfigDraft(config
+      ? { id: config.id, name: config.name, baseUrl: config.baseUrl, apiKey: config.apiKey, model: config.model }
+      : emptyAiConfig)
+    setAiConfigFormOpen(true)
+  }
+
+  const saveCurrentAiConfig = () => {
+    if (!aiConfigDraft.name.trim() || !aiConfigDraft.baseUrl.trim() || !aiConfigDraft.apiKey.trim() || !aiConfigDraft.model.trim()) {
+      Taro.showToast({ title: '请完整填写 AI 配置', icon: 'none' })
+      return
+    }
+    try {
+      saveAiConfig({ ...aiConfigDraft, id: editingAiConfigId })
+      refreshAiConfigs()
+      setAiConfigFormOpen(false)
+      Taro.showToast({ title: '已保存到本机', icon: 'success' })
+    } catch (error) {
+      Taro.showToast({ title: error instanceof Error ? error.message : '保存失败', icon: 'none' })
+    }
+  }
+
+  const testCurrentAiConfig = async () => {
+    if (!aiConfigDraft.baseUrl.trim() || !aiConfigDraft.apiKey.trim()) return Taro.showToast({ title: '请先填写 API 地址和密钥', icon: 'none' })
+    setAiTestBusy(true)
+    try {
+      await testAiConfig({
+        id: editingAiConfigId ?? 'unsaved',
+        name: aiConfigDraft.name || '未命名配置',
+        baseUrl: aiConfigDraft.baseUrl,
+        apiKey: aiConfigDraft.apiKey,
+        model: aiConfigDraft.model || 'unknown',
+        active: false,
+        createdAt: '',
+        updatedAt: '',
+      })
+      Taro.showToast({ title: '连接成功', icon: 'success' })
+    } catch (error) {
+      Taro.showToast({ title: error instanceof Error ? error.message : '连接失败', icon: 'none' })
+    } finally {
+      setAiTestBusy(false)
+    }
+  }
+
+  const requireAiConfig = () => {
+    const config = getActiveAiConfig()
+    if (config) return config
+    setAiConfigFormOpen(true)
+    throw new Error('请先添加本机 AI 配置')
   }
 
   const handlePolish = async () => {
     setAiBusy(true)
     try {
-      const token = await ensureSession()
-      const result = await polishCopy(selectedPost.text, token)
+      const result = await polishCopy(selectedPost.text, requireAiConfig())
       setPolishVariants(result.variants)
     } catch (error) {
       Taro.showToast({ title: error instanceof Error ? error.message : '润色失败', icon: 'none' })
@@ -230,9 +291,8 @@ export default function EditorPage() {
   const handleAiComments = async () => {
     setAiBusy(true)
     try {
-      const token = await ensureSession()
       const count = Math.max(1, selectedPost.comments.length || 3)
-      const result = await generateComments(selectedPost.text, count, token)
+      const result = await generateComments(selectedPost.text, count, requireAiConfig())
       const identities = createComments(result.comments.length, Math.floor(Math.random() * 1000))
       updateSelectedPost({ comments: identities.map((comment, index) => ({ ...comment, text: result.comments[index]?.text ?? comment.text })) })
       setActiveTab('content')
@@ -394,9 +454,24 @@ export default function EditorPage() {
 
             {activeTab === 'ai' && (
               <View className='panel-section'>
-                <View className='panel-heading-row'><View><Text className='panel-eyebrow'>服务端调用</Text><Text className='panel-title'>AI 文案助手</Text></View></View>
-                <Text className='section-description'>访问口令只换取短期令牌；图片与文案不会保存在服务端。</Text>
-                {!sessionToken && <View className='field-block'><Text className='field-label'>私用访问口令</Text><Input password className='text-field' value={password} onInput={(event) => setPassword(event.detail.value)} placeholder='输入服务端 ACCESS_PASSWORD' /></View>}
+                <View className='panel-heading-row'><View><Text className='panel-eyebrow'>本机直连</Text><Text className='panel-title'>AI 文案助手</Text></View><Button size='mini' className='chip-button' onClick={() => startAiConfig(activeAiConfig)}>管理配置</Button></View>
+                <Text className='section-description'>密钥仅保存在当前设备；文案会直接发送给你选择的 AI 服务，不经过本项目服务器。</Text>
+                {activeAiConfig
+                  ? <View className='ai-config-summary'><View><Text className='field-label'>{activeAiConfig.name}</Text><Text className='field-help'>{activeAiConfig.baseUrl} · {activeAiConfig.model}</Text></View><Text className='ai-config-status'>当前使用</Text></View>
+                  : <View className='ai-config-empty'><Text>尚未配置 AI 服务</Text><Button size='mini' className='chip-button' onClick={() => startAiConfig()}>添加配置</Button></View>}
+                {aiConfigFormOpen && (
+                  <View className='ai-config-editor'>
+                    <View className='panel-heading-row'><Text className='field-label'>{editingAiConfigId ? '编辑本机配置' : '添加本机配置'}</Text><Button size='mini' className='chip-button' onClick={() => setAiConfigFormOpen(false)}>收起</Button></View>
+                    <View className='field-block'><Text className='field-label'>配置名称</Text><Input className='text-field' value={aiConfigDraft.name} onInput={(event) => setAiConfigDraft((current) => ({ ...current, name: event.detail.value }))} placeholder='例如：我的 OpenAI' /></View>
+                    <View className='field-block'><Text className='field-label'>OpenAI 兼容 API 地址</Text><Input className='text-field' value={aiConfigDraft.baseUrl} onInput={(event) => setAiConfigDraft((current) => ({ ...current, baseUrl: event.detail.value }))} placeholder='https://api.openai.com/v1' /></View>
+                    <View className='field-block'><Text className='field-label'>API Key</Text><Input password className='text-field' value={aiConfigDraft.apiKey} onInput={(event) => setAiConfigDraft((current) => ({ ...current, apiKey: event.detail.value }))} placeholder='仅保存在此设备' /></View>
+                    <View className='field-block'><Text className='field-label'>模型名称</Text><Input className='text-field' value={aiConfigDraft.model} onInput={(event) => setAiConfigDraft((current) => ({ ...current, model: event.detail.value }))} placeholder='例如：gpt-4.1-mini' /></View>
+                    <Text className='field-help'>H5 服务须允许浏览器跨域请求；微信小程序还需在开发者后台配置请求合法域名。</Text>
+                    <View className='ai-config-buttons'><Button size='mini' className='secondary-button' loading={aiTestBusy} onClick={testCurrentAiConfig}>测试连接</Button><Button size='mini' className='primary-button' onClick={saveCurrentAiConfig}>保存配置</Button></View>
+                    {editingAiConfigId && <Button size='mini' className='danger-link' onClick={async () => { const result = await Taro.showModal({ title: '删除 AI 配置？', content: '该操作只会删除本机保存的配置。' }); if (result.confirm) { deleteAiConfig(editingAiConfigId); refreshAiConfigs(); setAiConfigFormOpen(false) } }}>删除此配置</Button>}
+                  </View>
+                )}
+                {aiConfigs.length > 1 && <View className='ai-config-list'>{aiConfigs.map((config) => <View key={config.id} className='ai-config-list-item'><View><Text className='field-label'>{config.name}</Text><Text className='field-help'>{config.model}</Text></View><View className='ai-config-item-actions'>{!config.active && <Button size='mini' className='chip-button' onClick={() => { activateAiConfig(config.id); refreshAiConfigs() }}>使用</Button>}<Button size='mini' className='chip-button' onClick={() => startAiConfig(config)}>编辑</Button><Button size='mini' className='danger-link' onClick={async () => { const result = await Taro.showModal({ title: '删除 AI 配置？', content: '该操作只会删除本机保存的配置。' }); if (result.confirm) { deleteAiConfig(config.id); refreshAiConfigs() } }}>删除</Button></View></View>)}</View>}
                 <Button className='primary-button primary-button--wide touch-feedback' loading={aiBusy} disabled={aiBusy || !selectedPost.text} onClick={handlePolish}>润色当前文案</Button>
                 <Button className='secondary-button secondary-button--wide touch-feedback' loading={aiBusy} disabled={aiBusy || !selectedPost.text} onClick={handleAiComments}>根据内容生成评论</Button>
                 {polishVariants.length > 0 && (
