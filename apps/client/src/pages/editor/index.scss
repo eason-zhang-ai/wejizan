@@ -97,7 +97,7 @@ $line: rgba(27, 45, 37, 0.09);
   box-shadow: 0 2PX 7PX rgba(30, 45, 38, .1), 0 1PX 0 white inset;
 }
 .segmented-control--compact { padding: 2PX; border-radius: 10PX; }
-.segmented-control--compact button { height: 29PX; padding: 0 10PX; line-height: 29PX; border-radius: 8PX; }
+.segmented-control--compact button { min-width: 62PX; height: 29PX; padding: 0 10PX; line-height: 29PX; border-radius: 8PX; white-space: nowrap; }
 
 .primary-button,
 .secondary-button {
