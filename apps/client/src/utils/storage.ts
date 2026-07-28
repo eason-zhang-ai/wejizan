@@ -3,6 +3,9 @@ import { editorProjectSchema, type EditorProject } from '@wejizan/contracts'
 
 const PROJECT_KEY = 'wejizan.project.v1'
 const AI_CONFIGS_KEY = 'wejizan.ai.configs.v1'
+const EDITOR_THEME_KEY = 'wejizan.editor.theme.v1'
+
+export type EditorTheme = 'light' | 'dark'
 
 export interface AiConfig {
   id: string
@@ -98,4 +101,12 @@ export function deleteAiConfig(id: string) {
   const remaining = loadAiConfigs().filter((config) => config.id !== id)
   if (remaining.length > 0 && !remaining.some((config) => config.active)) remaining[0] = { ...remaining[0]!, active: true, updatedAt: new Date().toISOString() }
   persistAiConfigs(remaining)
+}
+
+export function loadEditorTheme(): EditorTheme {
+  return Taro.getStorageSync<unknown>(EDITOR_THEME_KEY) === 'dark' ? 'dark' : 'light'
+}
+
+export function saveEditorTheme(theme: EditorTheme) {
+  Taro.setStorageSync(EDITOR_THEME_KEY, theme)
 }

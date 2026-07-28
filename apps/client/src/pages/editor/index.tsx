@@ -21,11 +21,14 @@ import {
   deleteAiConfig,
   getActiveAiConfig,
   loadAiConfigs,
+  loadEditorTheme,
   loadProject,
   saveAiConfig,
+  saveEditorTheme,
   saveProject,
   type AiConfig,
   type AiConfigDraft,
+  type EditorTheme,
 } from '../../utils/storage'
 import './index.scss'
 
@@ -48,6 +51,8 @@ export default function EditorPage() {
   const [aiBusy, setAiBusy] = useState(false)
   const [polishVariants, setPolishVariants] = useState<Array<{ tone: string; text: string }>>([])
   const [saveState, setSaveState] = useState<'saved' | 'saving'>('saved')
+  const [theme, setTheme] = useState<EditorTheme>(() => loadEditorTheme())
+  const [settingsOpen, setSettingsOpen] = useState(false)
 
   useEffect(() => {
     loadProject().then((saved) => {
@@ -230,6 +235,12 @@ export default function EditorPage() {
       ? { id: config.id, name: config.name, baseUrl: config.baseUrl, apiKey: config.apiKey, model: config.model }
       : emptyAiConfig)
     setAiConfigFormOpen(true)
+    setSettingsOpen(true)
+  }
+
+  const updateTheme = (nextTheme: EditorTheme) => {
+    setTheme(nextTheme)
+    saveEditorTheme(nextTheme)
   }
 
   const saveCurrentAiConfig = () => {
@@ -272,7 +283,7 @@ export default function EditorPage() {
   const requireAiConfig = () => {
     const config = getActiveAiConfig()
     if (config) return config
-    setAiConfigFormOpen(true)
+    startAiConfig()
     throw new Error('请先添加本机 AI 配置')
   }
 
@@ -326,7 +337,7 @@ export default function EditorPage() {
   }
 
   return (
-    <View className='editor-app'>
+    <View className={`editor-app ${theme === 'dark' ? 'is-dark' : ''}`}>
       <View className='app-topbar'>
         <View className='brand-lockup'>
           <View className='brand-mark'><Text>伪</Text></View>
@@ -337,15 +348,21 @@ export default function EditorPage() {
             <Button className={project.mode === 'generated' ? 'is-active' : ''} onClick={() => { setProject((current) => ({ ...current, mode: 'generated' })); setSelectedPostId(project.targetPostId); setActiveTab('content') }}>生成模式</Button>
             <Button className={project.mode === 'overlay' ? 'is-active' : ''} onClick={() => { setProject((current) => ({ ...current, mode: 'overlay' })); setSelectedPostId(project.targetPostId); setActiveTab('content') }}>截图叠加</Button>
           </View>
-          <View className='segmented-control segmented-control--compact'>
-            <Button className={project.device === 'ios' ? 'is-active' : ''} onClick={() => handleDevice('ios')}>iOS</Button>
-            <Button className={project.device === 'android' ? 'is-active' : ''} onClick={() => handleDevice('android')}>Android</Button>
+          <View className='device-toolbar'>
+            <View className='segmented-control segmented-control--compact'>
+              <Button className={project.device === 'ios' ? 'is-active' : ''} onClick={() => handleDevice('ios')}>iOS</Button>
+              <Button className={project.device === 'android' ? 'is-active' : ''} onClick={() => handleDevice('android')}>Android</Button>
+            </View>
+            <View className={`save-status ${saveState === 'saving' ? 'is-saving' : ''}`} aria-live='polite'>
+              <View className='save-status-dot' />
+              <Text>{saveState === 'saved' ? '已保存' : '保存中'}</Text>
+            </View>
           </View>
         </View>
         <View className='topbar-actions'>
-          <Text className={`save-state ${saveState === 'saving' ? 'is-saving' : ''}`}>{saveState === 'saved' ? '已保存到本机' : '保存中…'}</Text>
           <Button className='secondary-button touch-feedback' onClick={locateTarget}>定位主内容</Button>
-          <Button className='primary-button touch-feedback' onClick={handleCapture}>截取当前屏幕</Button>
+          <Button className='topbar-tool-button' onClick={() => updateTheme(theme === 'light' ? 'dark' : 'light')}>{theme === 'light' ? '☾ 深色' : '☀ 浅色'}</Button>
+          <Button className='topbar-tool-button topbar-settings-button' onClick={() => setSettingsOpen(true)}>⚙ 设置</Button>
         </View>
       </View>
 
@@ -454,24 +471,11 @@ export default function EditorPage() {
 
             {activeTab === 'ai' && (
               <View className='panel-section'>
-                <View className='panel-heading-row'><View><Text className='panel-eyebrow'>本机直连</Text><Text className='panel-title'>AI 文案助手</Text></View><Button size='mini' className='chip-button' onClick={() => startAiConfig(activeAiConfig)}>管理配置</Button></View>
+                <View className='panel-heading-row'><View><Text className='panel-eyebrow'>本机直连</Text><Text className='panel-title'>AI 文案助手</Text></View><Button size='mini' className='chip-button' onClick={() => setSettingsOpen(true)}>打开设置</Button></View>
                 <Text className='section-description'>密钥仅保存在当前设备；文案会直接发送给你选择的 AI 服务，不经过本项目服务器。</Text>
                 {activeAiConfig
                   ? <View className='ai-config-summary'><View><Text className='field-label'>{activeAiConfig.name}</Text><Text className='field-help'>{activeAiConfig.baseUrl} · {activeAiConfig.model}</Text></View><Text className='ai-config-status'>当前使用</Text></View>
                   : <View className='ai-config-empty'><Text>尚未配置 AI 服务</Text><Button size='mini' className='chip-button' onClick={() => startAiConfig()}>添加配置</Button></View>}
-                {aiConfigFormOpen && (
-                  <View className='ai-config-editor'>
-                    <View className='panel-heading-row'><Text className='field-label'>{editingAiConfigId ? '编辑本机配置' : '添加本机配置'}</Text><Button size='mini' className='chip-button' onClick={() => setAiConfigFormOpen(false)}>收起</Button></View>
-                    <View className='field-block'><Text className='field-label'>配置名称</Text><Input className='text-field' value={aiConfigDraft.name} onInput={(event) => setAiConfigDraft((current) => ({ ...current, name: event.detail.value }))} placeholder='例如：我的 OpenAI' /></View>
-                    <View className='field-block'><Text className='field-label'>OpenAI 兼容 API 地址</Text><Input className='text-field' value={aiConfigDraft.baseUrl} onInput={(event) => setAiConfigDraft((current) => ({ ...current, baseUrl: event.detail.value }))} placeholder='https://api.openai.com/v1' /></View>
-                    <View className='field-block'><Text className='field-label'>API Key</Text><Input password className='text-field' value={aiConfigDraft.apiKey} onInput={(event) => setAiConfigDraft((current) => ({ ...current, apiKey: event.detail.value }))} placeholder='仅保存在此设备' /></View>
-                    <View className='field-block'><Text className='field-label'>模型名称</Text><Input className='text-field' value={aiConfigDraft.model} onInput={(event) => setAiConfigDraft((current) => ({ ...current, model: event.detail.value }))} placeholder='例如：gpt-4.1-mini' /></View>
-                    <Text className='field-help'>H5 服务须允许浏览器跨域请求；微信小程序还需在开发者后台配置请求合法域名。</Text>
-                    <View className='ai-config-buttons'><Button size='mini' className='secondary-button' loading={aiTestBusy} onClick={testCurrentAiConfig}>测试连接</Button><Button size='mini' className='primary-button' onClick={saveCurrentAiConfig}>保存配置</Button></View>
-                    {editingAiConfigId && <Button size='mini' className='danger-link' onClick={async () => { const result = await Taro.showModal({ title: '删除 AI 配置？', content: '该操作只会删除本机保存的配置。' }); if (result.confirm) { deleteAiConfig(editingAiConfigId); refreshAiConfigs(); setAiConfigFormOpen(false) } }}>删除此配置</Button>}
-                  </View>
-                )}
-                {aiConfigs.length > 1 && <View className='ai-config-list'>{aiConfigs.map((config) => <View key={config.id} className='ai-config-list-item'><View><Text className='field-label'>{config.name}</Text><Text className='field-help'>{config.model}</Text></View><View className='ai-config-item-actions'>{!config.active && <Button size='mini' className='chip-button' onClick={() => { activateAiConfig(config.id); refreshAiConfigs() }}>使用</Button>}<Button size='mini' className='chip-button' onClick={() => startAiConfig(config)}>编辑</Button><Button size='mini' className='danger-link' onClick={async () => { const result = await Taro.showModal({ title: '删除 AI 配置？', content: '该操作只会删除本机保存的配置。' }); if (result.confirm) { deleteAiConfig(config.id); refreshAiConfigs() } }}>删除</Button></View></View>)}</View>}
                 <Button className='primary-button primary-button--wide touch-feedback' loading={aiBusy} disabled={aiBusy || !selectedPost.text} onClick={handlePolish}>润色当前文案</Button>
                 <Button className='secondary-button secondary-button--wide touch-feedback' loading={aiBusy} disabled={aiBusy || !selectedPost.text} onClick={handleAiComments}>根据内容生成评论</Button>
                 {polishVariants.length > 0 && (
@@ -519,6 +523,38 @@ export default function EditorPage() {
           </View>
         </View>
       </View>
+
+      {settingsOpen && (
+        <View className='settings-layer'>
+          <View className='settings-sheet' role='dialog' aria-modal='true' aria-label='设置'>
+            <View className='settings-header'><View><Text className='panel-eyebrow'>本机偏好</Text><Text className='settings-title'>设置</Text></View><Button className='settings-close' onClick={() => setSettingsOpen(false)}>×</Button></View>
+            <ScrollView scrollY className='settings-scroll'>
+              <View className='settings-section'>
+                <Text className='settings-section-title'>外观</Text>
+                <Text className='section-description'>主题仅影响编辑器界面；手机预览和导出的朋友圈画面保持不变。</Text>
+                <View className='theme-choice-row'><Button className={theme === 'light' ? 'is-active' : ''} onClick={() => updateTheme('light')}>☀ 浅色</Button><Button className={theme === 'dark' ? 'is-active' : ''} onClick={() => updateTheme('dark')}>☾ 深色</Button></View>
+              </View>
+              <View className='settings-section'>
+                <View className='panel-heading-row'><View><Text className='settings-section-title'>AI 模型</Text><Text className='field-help'>仅保存在当前设备</Text></View><Button size='mini' className='chip-button' onClick={() => startAiConfig()}>添加配置</Button></View>
+                <Text className='section-description'>使用 OpenAI 兼容 API。密钥不会上传到本项目服务器。</Text>
+                {aiConfigFormOpen && (
+                  <View className='ai-config-editor'>
+                    <View className='panel-heading-row'><Text className='field-label'>{editingAiConfigId ? '编辑本机配置' : '添加本机配置'}</Text><Button size='mini' className='chip-button' onClick={() => setAiConfigFormOpen(false)}>收起</Button></View>
+                    <View className='field-block'><Text className='field-label'>配置名称</Text><Input className='text-field' value={aiConfigDraft.name} onInput={(event) => setAiConfigDraft((current) => ({ ...current, name: event.detail.value }))} placeholder='例如：我的 OpenAI' /></View>
+                    <View className='field-block'><Text className='field-label'>OpenAI 兼容 API 地址</Text><Input className='text-field' value={aiConfigDraft.baseUrl} onInput={(event) => setAiConfigDraft((current) => ({ ...current, baseUrl: event.detail.value }))} placeholder='https://api.openai.com/v1' /></View>
+                    <View className='field-block'><Text className='field-label'>API Key</Text><Input password className='text-field' value={aiConfigDraft.apiKey} onInput={(event) => setAiConfigDraft((current) => ({ ...current, apiKey: event.detail.value }))} placeholder='仅保存在此设备' /></View>
+                    <View className='field-block'><Text className='field-label'>模型名称</Text><Input className='text-field' value={aiConfigDraft.model} onInput={(event) => setAiConfigDraft((current) => ({ ...current, model: event.detail.value }))} placeholder='例如：gpt-4.1-mini' /></View>
+                    <Text className='field-help'>H5 服务须允许浏览器跨域请求；微信小程序还需在开发者后台配置请求合法域名。</Text>
+                    <View className='ai-config-buttons'><Button size='mini' className='secondary-button' loading={aiTestBusy} onClick={testCurrentAiConfig}>测试连接</Button><Button size='mini' className='primary-button' onClick={saveCurrentAiConfig}>保存配置</Button></View>
+                    {editingAiConfigId && <Button size='mini' className='danger-link' onClick={async () => { const result = await Taro.showModal({ title: '删除 AI 配置？', content: '该操作只会删除本机保存的配置。' }); if (result.confirm) { deleteAiConfig(editingAiConfigId); refreshAiConfigs(); setAiConfigFormOpen(false) } }}>删除此配置</Button>}
+                  </View>
+                )}
+                {aiConfigs.length > 0 && <View className='ai-config-list'>{aiConfigs.map((config) => <View key={config.id} className='ai-config-list-item'><View><Text className='field-label'>{config.name}</Text><Text className='field-help'>{config.model}</Text></View><View className='ai-config-item-actions'>{!config.active && <Button size='mini' className='chip-button' onClick={() => { activateAiConfig(config.id); refreshAiConfigs() }}>使用</Button>}<Button size='mini' className='chip-button' onClick={() => startAiConfig(config)}>编辑</Button><Button size='mini' className='danger-link' onClick={async () => { const result = await Taro.showModal({ title: '删除 AI 配置？', content: '该操作只会删除本机保存的配置。' }); if (result.confirm) { deleteAiConfig(config.id); refreshAiConfigs() } }}>删除</Button></View></View>)}</View>}
+              </View>
+            </ScrollView>
+          </View>
+        </View>
+      )}
 
       <View className='capture-host'><CaptureSurface project={project} openMenuId={openMenuId} /></View>
       <Canvas className='capture-canvas' canvasId='capture-canvas' id='capture-canvas' />
