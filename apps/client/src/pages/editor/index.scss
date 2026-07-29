@@ -119,6 +119,7 @@ $line: rgba(27, 45, 37, 0.09);
 }
 .secondary-button { color: #385047; background: rgba(255,255,255,.78); border: 1PX solid rgba(31,61,47,.1); }
 .topbar-tool-button {
+  min-width: 72PX;
   height: 34PX;
   margin: 0;
   padding: 0 10PX;
@@ -132,6 +133,8 @@ $line: rgba(27, 45, 37, 0.09);
 }
 .topbar-tool-button::after { display: none; }
 .topbar-settings-button { color: #176b49; }
+.compact-locate-button,
+.responsive-export-button { display: none; }
 .primary-button--wide,
 .secondary-button--wide { width: 100%; margin-top: 10PX; }
 
@@ -391,7 +394,11 @@ $line: rgba(27, 45, 37, 0.09);
 .status-drag-target { position: absolute; width: 30PX; height: 26PX; margin: 0; border: 1PX solid transparent; border-radius: 7PX; cursor: grab; touch-action: none; }
 .status-drag-target--selected { border-color: #36a978; box-shadow: 0 0 0 2PX rgba(54,169,120,.14); }
 .status-drag-target:active { cursor: grabbing; }
-.status-component-palette { display: flex; flex-wrap: wrap; gap: 5PX; margin: 10PX 0; }
+.status-component-palette { display: flex; flex-direction: column; gap: 10PX; margin: 12PX 0; }
+.status-component-group { display: flex; flex-direction: column; gap: 6PX; }
+.status-component-group-label { color: #6c7a73; font-size: 9PX; font-weight: 750; letter-spacing: .08em; }
+.status-component-group-buttons { display: flex; flex-wrap: wrap; gap: 6PX; }
+.status-component-add { min-height: 34PX; padding: 0 10PX; font-size: 10PX; }
 .status-inspector { margin-top: 12PX; padding: 12PX; border-radius: 13PX; background: rgba(238,244,241,.85); }
 .scale-control { display: grid; grid-template-columns: 30PX minmax(0, 1fr) 30PX; align-items: center; gap: 8PX; margin-top: 4PX; }
 .scale-control slider { min-width: 0; }
@@ -443,12 +450,14 @@ $line: rgba(27, 45, 37, 0.09);
   box-shadow: 0 24PX 70PX rgba(20,35,28,.22), 0 1PX 0 rgba(255,255,255,.8) inset;
   backdrop-filter: blur(24PX) saturate(145%);
 }
+.settings-sheet--compact { height: auto; align-self: flex-start; }
 .settings-header { min-height: 72PX; display: flex; align-items: center; justify-content: space-between; padding: 13PX 15PX; border-bottom: 1PX solid $line; }
 .settings-title, .settings-section-title { display: block; color: #20342a; font-size: 16PX; font-weight: 750; }
 .settings-section-title { font-size: 13PX; }
 .settings-close { width: 32PX; height: 32PX; margin: 0; padding: 0; border: 0; border-radius: 10PX; color: #52645b; background: rgba(28,50,39,.07); font-size: 22PX; line-height: 28PX; }
 .settings-close::after { display: none; }
 .settings-scroll { height: calc(100% - 72PX); }
+.settings-sheet--compact .settings-scroll { height: auto; max-height: calc(100vh - 96PX); }
 .settings-section { padding: 16PX; border-bottom: 1PX solid $line; }
 .settings-section .section-description { margin: 6PX 0 12PX; }
 .theme-choice-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8PX; }
@@ -456,6 +465,9 @@ $line: rgba(27, 45, 37, 0.09);
 .theme-choice-row button::after { display: none; }
 .theme-choice-row button.is-active { border-color: rgba(31,143,95,.45); color: #176b49; background: #eaf6ef; box-shadow: 0 1PX 0 rgba(255,255,255,.85) inset; }
 .theme-system-hint { display: block; margin-top: 8PX; color: #587066; font-size: 10PX; }
+.settings-add-button { border-color: rgba(31,143,95,.26); color: #176b49; background: #e8f5ed; }
+.settings-ai-empty { display: flex; align-items: center; gap: 10PX; padding: 12PX; border: 1PX dashed rgba(31,143,95,.3); border-radius: 13PX; color: #587066; background: rgba(234,247,239,.58); }
+.settings-ai-empty-icon { width: 28PX; height: 28PX; flex: 0 0 auto; display: grid; place-items: center; border-radius: 9PX; color: #1f8f5f; background: rgba(31,143,95,.11); font-size: 15PX; }
 
 .editor-app.is-dark {
   color: #d7e4dd;
@@ -493,6 +505,9 @@ $line: rgba(27, 45, 37, 0.09);
 .is-dark .settings-close { color: #c5d8cd; background: rgba(221,240,230,.09); }
 .is-dark .theme-choice-row button { border-color: rgba(216,239,226,.12); color: #bfd3c7; background: rgba(221,240,230,.06); }
 .is-dark .theme-system-hint { color: #a5bbaf; }
+.is-dark .chip-button { border-color: rgba(216,239,226,.13); color: #c5d9cd; background: rgba(221,240,230,.08); }
+.is-dark .settings-add-button { border-color: rgba(92,205,144,.32); color: #b5e5c9; background: rgba(45,143,96,.24); }
+.is-dark .settings-ai-empty { border-color: rgba(92,205,144,.3); color: #b8d4c4; background: rgba(45,104,75,.22); }
 
 .capture-host { position: fixed; z-index: -100; left: -10000PX; top: 0; opacity: 1; pointer-events: none; }
 .capture-surface { position: relative; overflow: hidden; color: #151915; background: white; font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif; }
@@ -506,6 +521,7 @@ $line: rgba(27, 45, 37, 0.09);
   .right-panel { display: none; }
   .app-topbar { grid-template-columns: 1fr auto; }
   .topbar-center { order: 3; grid-column: 1 / -1; padding-bottom: 8PX; }
+  .responsive-export-button { display: inline-flex; align-items: center; justify-content: center; min-width: 74PX; height: 34PX; padding: 0 11PX; line-height: 32PX; }
 }
 
 @media (max-width: 820PX) {
@@ -513,14 +529,21 @@ $line: rgba(27, 45, 37, 0.09);
   .brand-subtitle, .secondary-button { display: none; }
   .topbar-center { order: 3; width: 100%; padding: 0; justify-content: flex-start; }
   .topbar-actions { margin-left: auto; }
+  .compact-locate-button { width: 34PX; height: 34PX; display: grid; place-items: center; margin: 0; padding: 0; border: 1PX solid rgba(31,61,47,.1); border-radius: 10PX; color: #40554b; background: rgba(255,255,255,.72); font-size: 17PX; line-height: 32PX; }
+  .compact-locate-button::after { display: none; }
+  .topbar-tool-button { min-width: 0; padding: 0 9PX; white-space: nowrap; }
+  .topbar-theme-button { min-width: 68PX; }
+  .responsive-export-button { min-width: 70PX; }
   .editor-workspace { display: flex; flex-direction: column; padding: 8PX; }
-  .preview-stage { order: 1; min-height: 680PX; }
+  .preview-stage { order: 1; min-height: 550PX; }
   .left-panel { order: 2; max-height: none; }
   .panel-scroll { height: auto; max-height: none; }
-  .phone-shell { transform: scale(.76); margin-bottom: -196PX; }
-  .phone-shell--android { margin-bottom: -174PX; }
+  .phone-shell { transform: scale(.64); margin-bottom: -306PX; }
+  .phone-shell--android { margin-bottom: -286PX; }
   .settings-layer { padding: 8PX; }
   .settings-sheet { width: 100%; border-radius: 16PX; }
+  .settings-sheet--compact { height: auto; }
+  .status-component-add { min-height: 40PX; padding: 0 11PX; }
 }
 
 @media (prefers-reduced-motion: reduce) {

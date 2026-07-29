@@ -382,8 +382,10 @@ export default function EditorPage() {
         </View>
         <View className='topbar-actions'>
           <Button className='secondary-button touch-feedback' onClick={locateTarget}>定位主内容</Button>
-          <Button className='topbar-tool-button' onClick={() => updateTheme(theme === 'light' ? 'dark' : theme === 'dark' ? 'system' : 'light')}>{theme === 'light' ? '☾ 深色' : theme === 'dark' ? '◐ 跟随系统' : '☀ 浅色'}</Button>
+          <Button className='compact-locate-button' onClick={locateTarget}>⌖</Button>
+          <Button className='topbar-tool-button topbar-theme-button' onClick={() => updateTheme(theme === 'light' ? 'dark' : theme === 'dark' ? 'system' : 'light')}>{theme === 'light' ? '☾ 深色' : theme === 'dark' ? '◐ 跟随系统' : '☀ 浅色'}</Button>
           <Button className='topbar-tool-button topbar-settings-button' onClick={() => setSettingsOpen(true)}>⚙ 设置</Button>
+          <Button className='responsive-export-button primary-button touch-feedback' onClick={handleCapture}>⇩ 导出</Button>
         </View>
       </View>
 
@@ -547,7 +549,7 @@ export default function EditorPage() {
 
       {settingsOpen && (
         <View className='settings-layer'>
-          <View className='settings-sheet' role='dialog' aria-modal='true' aria-label='设置'>
+          <View className={`settings-sheet ${aiConfigs.length === 0 && !aiConfigFormOpen ? 'settings-sheet--compact' : ''}`} role='dialog' aria-modal='true' aria-label='设置'>
             <View className='settings-header'><View><Text className='panel-eyebrow'>本机偏好</Text><Text className='settings-title'>设置</Text></View><Button className='settings-close' onClick={() => setSettingsOpen(false)}>×</Button></View>
             <ScrollView scrollY className='settings-scroll'>
               <View className='settings-section'>
@@ -557,8 +559,9 @@ export default function EditorPage() {
                 {theme === 'system' && <Text className='theme-system-hint'>当前系统外观：{systemTheme === 'dark' ? '深色' : '浅色'}</Text>}
               </View>
               <View className='settings-section'>
-                <View className='panel-heading-row'><View><Text className='settings-section-title'>AI 模型</Text><Text className='field-help'>仅保存在当前设备</Text></View><Button size='mini' className='chip-button' onClick={() => startAiConfig()}>添加配置</Button></View>
+                <View className='panel-heading-row'><View><Text className='settings-section-title'>AI 模型</Text><Text className='field-help'>仅保存在当前设备</Text></View><Button size='mini' className='chip-button settings-add-button' onClick={() => startAiConfig()}>添加配置</Button></View>
                 <Text className='section-description'>使用 OpenAI 兼容 API。密钥不会上传到本项目服务器。</Text>
+                {aiConfigs.length === 0 && !aiConfigFormOpen && <View className='settings-ai-empty'><Text className='settings-ai-empty-icon'>✦</Text><View><Text className='field-label'>还没有 AI 模型</Text><Text className='field-help'>添加一套配置后，即可在「AI」页签润色文案或生成评论。</Text></View></View>}
                 {aiConfigFormOpen && (
                   <View className='ai-config-editor'>
                     <View className='panel-heading-row'><Text className='field-label'>{editingAiConfigId ? '编辑本机配置' : '添加本机配置'}</Text><Button size='mini' className='chip-button' onClick={() => setAiConfigFormOpen(false)}>收起</Button></View>

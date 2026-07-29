@@ -18,6 +18,12 @@ const componentOptions: Array<{ type: StatusComponentType; label: string }> = [
   { type: 'hotspot', label: '个人热点' },
 ]
 
+const componentGroups = [
+  { label: '基础信息', types: ['time', 'carrier'] as StatusComponentType[] },
+  { label: '连接状态', types: ['signal', 'network', 'wifi', 'hotspot'] as StatusComponentType[] },
+  { label: '设备状态', types: ['battery', 'alarm', 'bluetooth', 'location', 'silent'] as StatusComponentType[] },
+]
+
 function defaultValueFor(type: StatusComponentType) {
   if (type === 'time') return '9:41'
   if (type === 'network') return '5G'
@@ -134,8 +140,16 @@ export function StatusBarEditor({ scheme, onChange }: StatusBarEditorProps) {
       </View>
 
       <View className='status-component-palette'>
-        {componentOptions.map((option) => (
-          <Button key={option.type} size='mini' className='chip-button touch-feedback' onClick={() => addComponent(option.type)}>+ {option.label}</Button>
+        {componentGroups.map((group) => (
+          <View key={group.label} className='status-component-group'>
+            <Text className='status-component-group-label'>{group.label}</Text>
+            <View className='status-component-group-buttons'>
+              {group.types.map((type) => {
+                const option = componentOptions.find((item) => item.type === type)!
+                return <Button key={option.type} size='mini' className='chip-button status-component-add touch-feedback' onClick={() => addComponent(option.type)}>+ {option.label}</Button>
+              })}
+            </View>
+          </View>
         ))}
       </View>
 
